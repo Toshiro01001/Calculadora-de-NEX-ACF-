@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Progresso da Caixa de Fósforos — Calculadora de NEX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Metal+Mania&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bone:#f2e24a; --bile:#cdbf45; --bone-dim:#b3a531;
+    --panel:rgba(11,13,6,.78); --panel-2:rgba(20,23,10,.70);
+    --line:rgba(242,226,74,.18); --line-hot:rgba(242,226,74,.44);
+    --ink:#ece7cf; --ink-dim:#bdb78f; --ink-faint:#8c8660;
+    --gold:#f2e24a; --blood:#a8202f;
+    --t-display:"Metal Mania", system-ui, cursive;
+    --t-body:"Shadows Into Light Two", system-ui, cursive;
+    --sombra:1.5px 1.5px 0 #000, 0 0 4px rgba(0,0,0,.85);
+    --sombra-tit:2px 2px 0 #000, 0 0 22px rgba(0,0,0,.7), 0 0 46px rgba(242,226,74,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%}
+  body{
+    font-family:var(--t-body); color:var(--ink); font-size:18px; line-height:1.5;
+    background-color:#39431c;
+    background-image:
+      linear-gradient(180deg, rgba(26,30,9,.40) 0%, rgba(12,15,5,.62) 65%, rgba(7,9,3,.80) 100%),
+      url("backrooms.png");
+    background-repeat:no-repeat, repeat;
+    background-size:cover, 300px auto;
+    background-position:center, top center;
+    background-attachment:fixed, fixed;
+    letter-spacing:.2px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* atmosfera */
+  body::before{ /* scanlines */
+    content:""; position:fixed; inset:0; z-index:60; pointer-events:none; opacity:.26;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.16) 2px 3px);
+    mix-blend-mode:multiply;
+  }
+  body::after{ /* luz fluorescente doente + vinheta */
+    content:""; position:fixed; inset:0; z-index:59; pointer-events:none;
+    background:
+      radial-gradient(70% 44% at 50% -2%, rgba(242,226,74,.14), transparent 62%),
+      radial-gradient(120% 100% at 50% 42%, transparent 52%, rgba(0,0,0,.62) 100%);
+  }
+
+  .wrap{max-width:1040px; margin:0 auto; padding:30px 18px 80px; position:relative; z-index:1}
+
+  header{text-align:center; margin-bottom:26px}
+  h1{
+    font-family:var(--t-display); font-weight:400; margin:0;
+    font-size:clamp(34px, 7vw, 70px); line-height:1.04; color:#efe7d0;
+    letter-spacing:2px; text-shadow:var(--sombra-tit);
+  }
+  .sub{
+    font-family:var(--t-body); letter-spacing:2px; font-size:clamp(16px,3.6vw,23px);
+    color:var(--bile); margin-top:4px; opacity:.95; text-shadow:var(--sombra);
+  }
+  .traco{height:1px; width:min(420px,80%); margin:18px auto 0;
+    background:linear-gradient(90deg,transparent,var(--line-hot),transparent)}
+
+  /* navegação */
+  nav{display:flex; gap:8px; justify-content:center; margin:22px 0 6px; flex-wrap:wrap}
+  nav button{
+    font-family:var(--t-display); text-transform:uppercase; letter-spacing:2px;
+    font-size:17px; color:var(--ink-dim); background:transparent;
+    border:1px solid var(--line); padding:7px 20px; cursor:pointer; border-radius:2px;
+    transition:.18s;
+  }
+  nav button:hover{color:var(--ink); border-color:var(--line-hot)}
+  nav button.ativo{color:#0a0809; background:var(--gold); border-color:var(--gold); font-weight:600}
+
+  .ferramentas{display:flex; gap:14px; justify-content:center; margin-top:12px}
+  .ferramentas button{
+    background:none; border:none; color:var(--ink-faint); cursor:pointer;
+    font-family:var(--t-body); font-size:12px; letter-spacing:1px; text-transform:uppercase;
+    border-bottom:1px dotted var(--ink-faint); padding:0 0 1px;
+  }
+  .ferramentas button:hover{color:var(--gold); border-color:var(--gold)}
+
+  /* grade de cobaias */
+  .grade{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; margin-top:20px}
+  .cobaia{
+    position:relative; background:var(--panel); border:1px solid var(--line);
+    border-left:3px solid var(--nex,var(--gold)); padding:16px 16px 14px; border-radius:3px;
+    backdrop-filter:blur(2px);
+  }
+  .cab{display:flex; align-items:baseline; justify-content:space-between; gap:10px}
+  .cod{font-size:12px; letter-spacing:3px; color:var(--ink-faint); text-transform:uppercase}
+  .nome{font-family:var(--t-display); font-size:32px; color:var(--bone); line-height:1; text-shadow:var(--sombra)}
+
+  .leitura{display:flex; align-items:flex-end; gap:6px; margin:12px 0 8px}
+  .num{font-family:var(--t-display); font-size:54px; line-height:.85; color:var(--nex,var(--bone)); text-shadow:var(--sombra)}
+  .pct{font-weight:300; font-size:20px; color:var(--ink-dim); margin-bottom:5px}
+  .rotulo-nex{margin-left:auto; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:7px}
+
+  .barra{height:7px; background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:20px; overflow:hidden}
+  .barra i{display:block; height:100%; width:0; background:var(--nex,var(--gold));
+    box-shadow:0 0 12px var(--nex,var(--gold)); transition:width .5s cubic-bezier(.2,.8,.2,1)}
+  .marcas{display:flex; justify-content:space-between; font-size:10px; color:var(--ink-faint); margin-top:3px; letter-spacing:1px}
+
+  details.aumento{margin-top:14px; border-top:1px solid var(--line); padding-top:10px}
+  details.aumento>summary{
+    list-style:none; cursor:pointer; user-select:none;
+    font-family:var(--t-display); font-size:17px; letter-spacing:1px; text-transform:uppercase; color:var(--bone);
+    display:flex; align-items:center; gap:8px;
+  }
+  details.aumento>summary::-webkit-details-marker{display:none}
+  details.aumento>summary::before{content:"▸"; transition:.2s; color:var(--gold)}
+  details.aumento[open]>summary::before{transform:rotate(90deg)}
+  .gatilhos{display:flex; flex-direction:column; gap:7px; margin-top:12px}
+  .gatilhos button{
+    text-align:left; font-family:var(--t-body); font-weight:400; font-size:13.5px;
+    color:var(--ink); background:var(--panel-2); border:1px solid var(--line);
+    padding:9px 11px; cursor:pointer; border-radius:2px; transition:.15s;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+  }
+  .gatilhos button:hover{border-color:var(--line-hot); background:rgba(201,176,122,.1)}
+  .gatilhos button b{color:var(--gold); font-weight:600; white-space:nowrap}
+
+  .desfazer{
+    margin-top:11px; width:100%; background:none; border:1px dashed rgba(168,32,47,.4);
+    color:#cf7b7f; font-family:var(--t-body); font-size:12px; letter-spacing:1px;
+    text-transform:uppercase; padding:7px; cursor:pointer; border-radius:2px; transition:.15s;
+  }
+  .desfazer:hover{background:rgba(168,32,47,.14); color:#f0b6ba; border-color:var(--blood)}
+  .desfazer[hidden]{display:none}
+
+  /* histórico */
+  .filtros{display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin:18px 0 22px}
+  .filtros button{
+    font-family:var(--t-body); font-size:12px; letter-spacing:1px; color:var(--ink-dim);
+    background:transparent; border:1px solid var(--line); padding:6px 12px; cursor:pointer; border-radius:20px; transition:.15s;
+  }
+  .filtros button:hover{color:var(--ink); border-color:var(--line-hot)}
+  .filtros button.on{background:var(--gold); color:#0a0809; border-color:var(--gold); font-weight:600}
+
+  .linha-tempo{max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:10px}
+  .registro{
+    display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+    background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--nex,var(--gold));
+    padding:12px 14px; border-radius:3px;
+  }
+  .registro .quando{font-size:12px; color:var(--ink-faint); letter-spacing:.5px; min-width:96px}
+  .registro .quando b{display:block; color:var(--ink-dim); font-weight:500; font-size:13px}
+  .registro .oque .alvo{font-family:var(--t-display); font-size:21px; color:var(--bone); line-height:1}
+  .registro .oque .causa{font-size:13px; color:var(--ink-dim)}
+  .registro .delta{text-align:right}
+  .registro .delta .mais{color:var(--gold); font-weight:700; font-size:17px}
+  .registro .delta .res{font-size:12px; color:var(--ink-faint); white-space:nowrap}
+  .registro .rev{
+    grid-column:1/-1; justify-self:end; margin-top:2px; background:none; border:none;
+    color:#cf7b7f; font-size:11px; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+    border-bottom:1px dotted #cf7b7f; padding:0;
+  }
+  .registro .rev:hover{color:#f0b6ba; border-color:#f0b6ba}
+  .vazio{text-align:center; color:var(--ink-faint); font-size:15px; letter-spacing:1px; padding:50px 0; font-style:italic}
+
+  .nota{max-width:760px; margin:30px auto 0; text-align:center; color:var(--ink-faint);
+    font-size:12px; letter-spacing:.4px; line-height:1.6}
+  .oculto{display:none !important}
+
+  @media (max-width:560px){
+    .grade{grid-template-columns:1fr}
+    .num{font-size:40px}
+  }
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Progresso da Caixa de Fósforos</h1>
+      <div class="sub">Calculadora de NEX</div>
+      <div class="traco"></div>
+      <nav>
+        <button id="nav-calc" class="ativo" onclick="mostrar('calc')">Calculadora</button>
+        <button id="nav-hist" onclick="mostrar('hist')">Histórico</button>
+      </nav>
+      <div class="ferramentas">
+        <button onclick="exportar()">Exportar backup</button>
+        <button onclick="document.getElementById('arq').click()">Importar backup</button>
+        <input id="arq" type="file" accept="application/json" class="oculto" onchange="importar(event)">
+      </div>
+    </header>
+
+    <section id="view-calc">
+      <div class="grade" id="grade"></div>
+    </section>
+
+    <section id="view-hist" class="oculto">
+      <div class="filtros" id="filtros"></div>
+      <div class="linha-tempo" id="linha-tempo"></div>
+    </section>
+
+    <p class="nota">
+      Os dados ficam salvos neste navegador. Use <b>Exportar backup</b> de tempos em tempos para guardar o progresso da campanha
+      e poder restaurar em outro aparelho. NEX é limitado entre 0% e 99%.
+    </p>
+  </div>
+
+<script>
+/* ===================== DADOS BASE ===================== */
+const COBAIAS = [
+  { id:"001", nome:"Faca",     base:11 },
+  { id:"002", nome:"Sabonete", base:10 },
+  { id:"003", nome:"Mostarda", base:22 },
+  { id:"004", nome:"Papelão",  base:20 },
+  { id:"005", nome:"Papel",    base:15 },
+  { id:"006", nome:"Luva",     base:11 },
+  { id:"007", nome:"Velcro",   base:24 },
+];
+
+const GATILHOS = [
+  { key:"criatura",   label:"Exposição à criatura",              delta:2 },
+  { key:"medo_leve",  label:"Exposição leve à sala de medo",     delta:2 },
+  { key:"medo_mod",   label:"Exposição moderada à sala de medo", delta:3 },
+  { key:"ritual",     label:"Aprender Ritual",                   delta:1 },
+  { key:"transcender",label:"Transcender",                       delta:1 },
+];
+
+const CHAVE = "caixa-fosforos:nex:eventos:v1";
+const TETO = 99, PISO = 0;
+
+/* ===================== ESTADO ===================== */
+let eventos = carregar();
+let filtro = "todos";
+
+function carregar(){
+  try{ return JSON.parse(localStorage.getItem(CHAVE)) || []; }
+  catch(e){ return []; }
+}
+function salvar(){
+  try{ localStorage.setItem(CHAVE, JSON.stringify(eventos)); }
+  catch(e){ alert("Não consegui salvar neste navegador. Se estiver em aba anônima ou com armazenamento bloqueado, os dados não persistem."); }
+}
+function ordenados(){ return [...eventos].sort((a,b)=>a.ts-b.ts); }
+
+/* NEX bruto (sem limite) e NEX exibido (com limite), por personagem */
+function somaAte(charId, tsLimite){
+  const base = COBAIAS.find(c=>c.id===charId).base;
+  let v = base;
+  for(const e of ordenados()){
+    if(e.char===charId && e.ts<=tsLimite) v += e.delta;
+  }
+  return v;
+}
+function nexAtual(charId){
+  const base = COBAIAS.find(c=>c.id===charId).base;
+  const soma = base + eventos.filter(e=>e.char===charId).reduce((s,e)=>s+e.delta,0);
+  return Math.max(PISO, Math.min(TETO, soma));
+}
+function ultimoEvento(charId){
+  const lista = eventos.filter(e=>e.char===charId).sort((a,b)=>b.ts-a.ts);
+  return lista[0] || null;
+}
+
+/* cor do NEX conforme a contaminação */
+function corNex(n){
+  if(n<=20) return "#ead63c";   // amarelo-bile / inicio
+  if(n<=40) return "#d9a521";   // ambar
+  if(n<=60) return "#e0701f";   // laranja-sangue
+  if(n<=80) return "#cf2f2a";   // sangue
+  return "#b3246a";             // hematoma / limiar
+}
+
+/* ===================== AÇÕES ===================== */
+function aplicar(charId, gatilhoKey){
+  const g = GATILHOS.find(x=>x.key===gatilhoKey);
+  eventos.push({
+    eid: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random()),
+    char: charId, key:g.key, label:g.label, delta:g.delta, ts: Date.now()
+  });
+  salvar(); renderTudo();
+}
+function reverter(eid){
+  eventos = eventos.filter(e=>e.eid!==eid);
+  salvar(); renderTudo();
+}
+function desfazerUltimo(charId){
+  const u = ultimoEvento(charId);
+  if(u) reverter(u.eid);
+}
+
+/* ===================== RENDER: CALCULADORA ===================== */
+function renderGrade(){
+  const grade = document.getElementById("grade");
+  grade.innerHTML = "";
+  for(const c of COBAIAS){
+    const n = nexAtual(c.id);
+    const cor = corNex(n);
+    const ult = ultimoEvento(c.id);
+    const art = document.createElement("article");
+    art.className = "cobaia";
+    art.style.setProperty("--nex", cor);
+    art.innerHTML = `
+      <div class="cab">
+        <span class="cod">FHP · ${c.id}</span>
+        <span class="nome">${c.nome}</span>
+      </div>
+      <div class="leitura">
+        <span class="num">${n}</span><span class="pct">%</span>
+        <span class="rotulo-nex">NEX</span>
+      </div>
+      <div class="barra"><i style="width:${n}%"></i></div>
+      <div class="marcas"><span>0%</span><span>99%</span></div>
+      <details class="aumento">
+        <summary>Aumento de NEX</summary>
+        <div class="gatilhos">
+          ${GATILHOS.map(g=>`
+            <button onclick="aplicar('${c.id}','${g.key}')">
+              <span>${g.label}</span><b>+${g.delta}</b>
+            </button>`).join("")}
+        </div>
+      </details>
+      <button class="desfazer" ${ult?"":"hidden"} onclick="desfazerUltimo('${c.id}')">
+        ↩ desfazer último${ult?` (${ult.label} +${ult.delta})`:""}
+      </button>`;
+    grade.appendChild(art);
+  }
+}
+
+/* ===================== RENDER: HISTÓRICO ===================== */
+function renderFiltros(){
+  const cont = document.getElementById("filtros");
+  const itens = [{id:"todos",rotulo:"Todos"}].concat(
+    COBAIAS.map(c=>({id:c.id, rotulo:`${c.id} ${c.nome}`}))
+  );
+  cont.innerHTML = itens.map(i=>`
+    <button class="${filtro===i.id?"on":""}" onclick="setFiltro('${i.id}')">${i.rotulo}</button>
+  `).join("");
+}
+function setFiltro(id){ filtro = id; renderFiltros(); renderHistorico(); }
+
+function fmtData(ts){
+  const d = new Date(ts);
+  const data = d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  const hora = d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  return {data, hora};
+}
+function renderHistorico(){
+  const cont = document.getElementById("linha-tempo");
+  let lista = ordenados();
+  if(filtro!=="todos") lista = lista.filter(e=>e.char===filtro);
+  lista = lista.reverse(); // mais recente primeiro
+
+  if(lista.length===0){
+    cont.innerHTML = `<div class="vazio">Nenhum aumento registrado ainda. A Caixa de Fósforos ainda dorme.</div>`;
+    return;
+  }
+  cont.innerHTML = lista.map(e=>{
+    const c = COBAIAS.find(x=>x.id===e.char);
+    const resultante = Math.max(PISO, Math.min(TETO, somaAte(e.char, e.ts)));
+    const cor = corNex(resultante);
+    const {data,hora} = fmtData(e.ts);
+    return `
+      <div class="registro" style="--nex:${cor}">
+        <div class="quando"><b>${data}</b>${hora}</div>
+        <div class="oque">
+          <div class="alvo">FHP · ${c.id} ${c.nome}</div>
+          <div class="causa">${e.label}</div>
+        </div>
+        <div class="delta">
+          <div class="mais">+${e.delta}</div>
+          <div class="res">NEX → ${resultante}%</div>
+        </div>
+        <button class="rev" onclick="reverter('${e.eid}')">reverter</button>
+      </div>`;
+  }).join("");
+}
+
+/* ===================== NAVEGAÇÃO ===================== */
+function mostrar(qual){
+  const calc = qual==="calc";
+  document.getElementById("view-calc").classList.toggle("oculto", !calc);
+  document.getElementById("view-hist").classList.toggle("oculto", calc);
+  document.getElementById("nav-calc").classList.toggle("ativo", calc);
+  document.getElementById("nav-hist").classList.toggle("ativo", !calc);
+  if(!calc) renderHistorico();
+}
+
+/* ===================== BACKUP ===================== */
+function exportar(){
+  const blob = new Blob([JSON.stringify(eventos,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "caixa-de-fosforos-nex-" + new Date().toISOString().slice(0,10) + ".json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importar(ev){
+  const f = ev.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const dados = JSON.parse(r.result);
+      if(!Array.isArray(dados)) throw new Error("formato");
+      if(!confirm("Isto vai substituir o histórico atual pelo do arquivo. Continuar?")) return;
+      eventos = dados; salvar(); renderTudo();
+      alert("Backup importado.");
+    }catch(e){ alert("Arquivo inválido."); }
+  };
+  r.readAsText(f);
+  ev.target.value = "";
+}
+
+/* ===================== INICIAR ===================== */
+function renderTudo(){ renderGrade(); renderFiltros(); renderHistorico(); }
+renderTudo();
+</script>
+</body>
+</html>
