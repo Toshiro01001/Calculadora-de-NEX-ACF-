@@ -53,3 +53,7 @@ Limpar os dados do navegador apaga o histórico. Mantenha um backup recente.
 Se no futuro for necessário sincronizar automaticamente entre vários aparelhos, a calculadora pode ser ligada a um backend leve (Cloudflare Worker com KV), como já é feito no site da Parede de Desejos.
 Tecnologia
 HTML, CSS e JavaScript puro, sem dependências além das fontes do Google Fonts. Não há build nem servidor.
+
+---
+
+Desenvolvido por Rodrigo Terroso Junior. O Claude, da Anthropic, foi usado como ferramenta durante o desenvolvimento.
