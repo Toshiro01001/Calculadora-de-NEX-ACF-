@@ -166,6 +166,10 @@
   @media (max-width:560px){
     .grade{grid-template-columns:1fr}
     .num{font-size:40px}
+    /* amplia a area de toque de exportar/importar e reverter sem mudar o visual */
+    .ferramentas button,.rev{position:relative}
+    .ferramentas button::after{content:""; position:absolute; inset:-10px -7px}
+    .rev::after{content:""; position:absolute; inset:-8px -6px}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none !important} }
 </style>
